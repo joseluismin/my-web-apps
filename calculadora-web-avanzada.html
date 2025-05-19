@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Avanzada</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzMzOTlmZiIgZD0iTTQgMkMyLjkgMiAyIDIuOSAyIDR2MTZjMCAxLjEuOSAyIDIgMmgxNmMxLjEgMCAyLS45IDItMlY0YzAtMS4xLS45LTItMi0ySDR6bTIgNGgxMnYySDZWNnptOSA0SDZ2Mmg5di0yem0tOSA0aDJ2Mkg2di0yem00IDBoMnYyaC0ydi0yem00IDBoMnYyaC0ydi0yeiIvPjwvc3ZnPg==">
+    <style>
+        :root[data-theme="light"] {
+            --primary-color: #3399ff;
+            --dark-color: #333;
+            --light-color: #f9f9f9;
+            --bg-color: #f0f2f5;
+            --text-color: #333;
+            --button-bg: white;
+            --button-hover: #f0f0f0;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --border-radius: 10px;
+            --button-radius: 8px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        :root[data-theme="dark"] {
+            --primary-color: #4da3ff;
+            --dark-color: #f9f9f9;
+            --light-color: #2d2d2d;
+            --bg-color: #1a1a1a;
+            --text-color: #f9f9f9;
+            --button-bg: #3d3d3d;
+            --button-hover: #4d4d4d;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --border-radius: 10px;
+            --button-radius: 8px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .theme-switch-label {
+            width: 48px;
+            height: 24px;
+            background-color: var(--button-bg);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch-label::after {
+            content: '🌞';
+            font-size: 14px;
+            position: absolute;
+            left: 4px;
+            top: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch input:checked + .theme-switch-label::after {
+            content: '🌙';
+            transform: translateX(24px);
+        }
+
+        .calculadora {
+            width: 360px;
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .teclado, .funciones-avanzadas, .conversion-unidades, .funciones-financieras {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 15px;
+            background-color: var(--light-color);
+        }
+
+        .teclado.visible, .funciones-avanzadas.visible, .conversion-unidades.visible, .funciones-financieras.visible {
+            display: grid;
+        }
+
+        .modo-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 10px;
+            background-color: var(--button-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modo-btn {
+            height: 40px;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .modo-btn.activo {
+            background: linear-gradient(135deg, var(--primary-color), #2288ee);
+            color: white;
+            font-weight: 500;
+        }
+
+        .pantalla {
+            padding: 20px;
+            text-align: right;
+            background-color: var(--button-bg);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 5px;
+        }
+
+        .operacion {
+            min-height: 24px;
+            font-size: 16px;
+            color: var(--text-color);
+            opacity: 0.7;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 5px;
+        }
+
+        .resultado {
+            min-height: 45px;
+            font-size: 36px;
+            font-weight: 500;
+            color: var(--text-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        button {
+            height: 60px;
+            width: 100%;
+            font-size: 20px;
+            border: none;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border-radius: var(--button-radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .operador {
+            background: linear-gradient(135deg, var(--primary-color), #2288ee);
+            color: white;
+            font-weight: 500;
+        }
+
+        .igual {
+            background: linear-gradient(135deg, #50c878, #40b868);
+            color: white;
+            font-weight: 500;
+            grid-column: span 2;
+        }
+
+        .limpiar {
+            background: linear-gradient(135deg, #ff6b6b, #ff5b5b);
+            color: white;
+            font-weight: 500;
+        }
+
+        .borrar {
+            background: linear-gradient(135deg, #ffbe0b, #ffae0b);
+            color: white;
+            font-weight: 500;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--border-color);
+            filter: brightness(1.1);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px var(--border-color);
+            filter: brightness(0.95);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: var(--text-color);
+            background-color: var(--light-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        .resultado {
+            transition: all 0.2s ease;
+        }
+
+        .resultado.actualizado {
+            animation: actualizar 0.3s ease;
+        }
+
+        @keyframes actualizar {
+            0% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-switch">
+        <input type="checkbox" id="theme-toggle">
+        <label for="theme-toggle" class="theme-switch-label"></label>
+    </div>
+    <div class="calculadora" role="application" aria-label="Calculadora">
+        <div class="modo-selector" role="toolbar" aria-label="Selector de modo">
+            <button class="modo-btn activo" onclick="cambiarModo('normal')" aria-pressed="true">Básica</button>
+            <button class="modo-btn" onclick="cambiarModo('avanzado')" aria-pressed="false">Avanzada</button>
+            <button class="modo-btn" onclick="cambiarModo('conversion')" aria-pressed="false">Conversión</button>
+            <button class="modo-btn" onclick="cambiarModo('financiero')" aria-pressed="false">Financiero</button>
+        </div>
+        
+        <div class="pantalla" role="region" aria-live="polite">
+            <div class="operacion" id="operacion" aria-label="Operación actual"></div>
+            <div class="resultado" id="resultado" aria-label="Resultado">0</div>
+        </div>
+
+        <!-- Teclado básico -->
+        <div class="teclado visible" role="group" aria-label="Teclado básico">
+            <button class="limpiar" onclick="limpiar()" aria-label="Limpiar todo">C</button>
+            <button class="borrar" onclick="borrar()" aria-label="Borrar último dígito">⌫</button>
+            <button class="operador" onclick="agregarOperador('%')" aria-label="Porcentaje">%</button>
+            <button class="operador" onclick="agregarOperador('/')" aria-label="Dividir">/</button>
+            <button onclick="agregarNumero('7')" aria-label="Siete">7</button>
+            <button onclick="agregarNumero('8')" aria-label="Ocho">8</button>
+            <button onclick="agregarNumero('9')" aria-label="Nueve">9</button>
+            <button class="operador" onclick="agregarOperador('*')" aria-label="Multiplicar">×</button>
+            <button onclick="agregarNumero('4')" aria-label="Cuatro">4</button>
+            <button onclick="agregarNumero('5')" aria-label="Cinco">5</button>
+            <button onclick="agregarNumero('6')" aria-label="Seis">6</button>
+            <button class="operador" onclick="agregarOperador('-')" aria-label="Restar">-</button>
+            <button onclick="agregarNumero('1')" aria-label="Uno">1</button>
+            <button onclick="agregarNumero('2')" aria-label="Dos">2</button>
+            <button onclick="agregarNumero('3')" aria-label="Tres">3</button>
+            <button class="operador" onclick="agregarOperador('+')" aria-label="Sumar">+</button>
+            <button onclick="agregarNumero('0')" aria-label="Cero">0</button>
+            <button onclick="agregarDecimal()" aria-label="Punto decimal">.</button>
+            <button class="igual" onclick="calcular()" aria-label="Igual">=</button>
+        </div>
+
+        <!-- Funciones avanzadas -->
+        <div class="funciones-avanzadas" role="group" aria-label="Funciones avanzadas">
+            <!-- Operadores básicos -->
+            <button onclick="calcularFuncion('sqrt')" aria-label="Raíz cuadrada">√</button>
+            <button onclick="calcularFuncion('pow2')" aria-label="Potencia al cuadrado">x²</button>
+            <button onclick="calcularFuncion('pow3')" aria-label="Potencia al cubo">x³</button>
+            <button onclick="calcularFuncion('reciproco')" aria-label="Recíproco">1/x</button>
+
+            <!-- Constantes -->
+            <button onclick="calcularFuncion('pi')" aria-label="Pi">π</button>
+            <button onclick="calcularFuncion('e')" aria-label="Número e">e</button>
+            <button onclick="calcularFuncion('rand')" aria-label="Número aleatorio">rand</button>
+            <button onclick="calcularFuncion('fact')" aria-label="Factorial">n!</button>
+
+            <!-- Funciones trigonométricas -->
+            <button onclick="calcularFuncion('sin')" aria-label="Seno">sin</button>
+            <button onclick="calcularFuncion('cos')" aria-label="Coseno">cos</button>
+            <button onclick="calcularFuncion('tan')" aria-label="Tangente">tan</button>
+            <button onclick="calcularFuncion('log')" aria-label="Logaritmo">log</button>
+            
+            <!-- Funciones hiperbólicas -->
+            <button onclick="calcularFuncion('sinh')" aria-label="Seno hiperbólico">sinh</button>
+            <button onclick="calcularFuncion('cosh')" aria-label="Coseno hiperbólico">cosh</button>
+            <button onclick="calcularFuncion('tanh')" aria-label="Tangente hiperbólica">tanh</button>
+            <button onclick="calcularFuncion('ln')" aria-label="Logaritmo natural">ln</button>
+            
+            <!-- Conversión numérica -->
+            <button onclick="convertirBase('bin')" aria-label="Convertir a binario">→bin</button>
+            <button onclick="convertirBase('oct')" aria-label="Convertir a octal">→oct</button>
+            <button onclick="convertirBase('hex')" aria-label="Convertir a hexadecimal">→hex</button>
+            <button onclick="convertirBase('dec')" aria-label="Convertir a decimal">→dec</button>
+        </div>
+
+        <!-- Conversión de unidades -->
+        <div class="conversion-unidades" role="group" aria-label="Conversión de unidades">
+            <button onclick="convertirUnidad('km-mi')" aria-label="Kilómetros a Millas">km→mi</button>
+            <button onclick="convertirUnidad('mi-km')" aria-label="Millas a Kilómetros">mi→km</button>
+            <button onclick="convertirUnidad('kg-lb')" aria-label="Kilogramos a Libras">kg→lb</button>
+            <button onclick="convertirUnidad('lb-kg')" aria-label="Libras a Kilogramos">lb→kg</button>
+            <button onclick="convertirUnidad('c-f')" aria-label="Celsius a Fahrenheit">°C→°F</button>
+            <button onclick="convertirUnidad('f-c')" aria-label="Fahrenheit a Celsius">°F→°C</button>
+            <button onclick="convertirUnidad('m-ft')" aria-label="Metros a Pies">m→ft</button>
+            <button onclick="convertirUnidad('ft-m')" aria-label="Pies a Metros">ft→m</button>
+        </div>
+
+        <!-- Modo Financiero -->
+        <div class="funciones-financieras" role="group" aria-label="Funciones financieras">
+            <button onclick="calcularFinanciero('interes-simple')" aria-label="Interés Simple">I.Simple</button>
+            <button onclick="calcularFinanciero('interes-compuesto')" aria-label="Interés Compuesto">I.Comp</button>
+            <button onclick="calcularFinanciero('van')" aria-label="Valor Actual Neto">VAN</button>
+            <button onclick="calcularFinanciero('tir')" aria-label="Tasa Interna de Retorno">TIR</button>
+            
+            <button onclick="calcularFinanciero('cuota-prestamo')" aria-label="Cuota Préstamo">Cuota</button>
+            <button onclick="calcularFinanciero('total-prestamo')" aria-label="Total Préstamo">Total</button>
+            <button onclick="calcularFinanciero('tasa-efectiva')" aria-label="Tasa Efectiva">TEA</button>
+            <button onclick="calcularFinanciero('tasa-nominal')" aria-label="Tasa Nominal">TNA</button>
+            
+            <button onclick="calcularFinanciero('dep-lineal')" aria-label="Depreciación Lineal">Dep.Lin</button>
+            <button onclick="calcularFinanciero('dep-acelerada')" aria-label="Depreciación Acelerada">Dep.Acel</button>
+            <button onclick="calcularFinanciero('periodo-recuperacion')" aria-label="Periodo de Recuperación">PayBack</button>
+            <button onclick="calcularFinanciero('relacion-bc')" aria-label="Relación Beneficio/Costo">B/C</button>
+        </div>
+
+        <div class="footer">
+            Calculadora Web Avanzada - 2025
+        </div>
+    </div>
+    <script>
+        // Tema oscuro/claro
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Cargar tema guardado o usar preferencia del sistema
+        const savedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        htmlElement.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+
+        // Manejar cambio de tema
+        themeToggle.addEventListener('change', function() {
+            const newTheme = this.checked ? 'dark' : 'light';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Escuchar cambios en la preferencia del sistema
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem('theme')) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', newTheme);
+                themeToggle.checked = e.matches;
+            }
+        });
+
+        let operacionActual = '';
+        let resultadoActual = '0';
+        let resetearPantalla = false;
+        
+        const operacionElement = document.getElementById('operacion');
+        const resultadoElement = document.getElementById('resultado');
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            cambiarModo('normal');
+        });
+
+        function actualizarPantalla() {
+            operacionElement.textContent = operacionActual;
+            resultadoElement.textContent = resultadoActual;
+            
+            // Añadir animación
+            resultadoElement.classList.add('actualizado');
+            setTimeout(() => {
+                resultadoElement.classList.remove('actualizado');
+            }, 300);
+            
+            // Actualizar aria-label para accesibilidad
+            resultadoElement.setAttribute('aria-label', `Resultado: ${resultadoActual}`);
+        }
+        
+        function agregarNumero(numero) {
+            if (resultadoActual === '0' || resetearPantalla) {
+                resultadoActual = numero;
+                resetearPantalla = false;
+            } else {
+                resultadoActual += numero;
+            }
+            actualizarPantalla();
+        }
+        
+        function agregarOperador(operador) {
+            if (operacionActual && resetearPantalla) {
+                operacionActual = operacionActual.slice(0, -1) + operador;
+            } else {
+                operacionActual += resultadoActual + ' ' + operador + ' ';
+                resetearPantalla = true;
+            }
+            actualizarPantalla();
+        }
+        
+        function agregarDecimal() {
+            if (resetearPantalla) {
+                resultadoActual = '0.';
+                resetearPantalla = false;
+            } else if (!resultadoActual.includes('.')) {
+                resultadoActual += '.';
+            }
+            actualizarPantalla();
+        }
+        
+        function calcular() {
+            let calculo = operacionActual + resultadoActual;
+            try {
+                // Reemplazar el símbolo % por operación de porcentaje
+                calculo = calculo.replace(/(\d+(\.\d+)?)\s*%/g, function(match, number) {
+                    return number + '/100';
+                });
+                
+                const resultado = eval(calculo);
+                const resultadoFormateado = formatearResultado(resultado);
+                
+                operacionActual = '';
+                resultadoActual = resultadoFormateado;
+                resetearPantalla = true;
+                actualizarPantalla();
+            } catch (error) {
+                resultadoActual = 'Error';
+                resetearPantalla = true;
+                actualizarPantalla();
+            }
+        }
+        
+        function formatearResultado(numero) {
+            if (typeof numero !== 'number') return numero;
+            
+            // Limitar a 10 dígitos para evitar desbordamiento
+            if (numero.toString().length > 10) {
+                if (Number.isInteger(numero)) {
+                    return numero.toExponential(4);
+                } else {
+                    return parseFloat(numero.toFixed(8)).toString();
+                }
+            }
+            return numero.toString();
+        }
+        
+        function limpiar() {
+            operacionActual = '';
+            resultadoActual = '0';
+            resetearPantalla = false;
+            actualizarPantalla();
+        }
+        
+        function borrar() {
+            if (resultadoActual.length === 1 || resultadoActual === 'Error') {
+                resultadoActual = '0';
+            } else {
+                resultadoActual = resultadoActual.slice(0, -1);
+            }
+            actualizarPantalla();
+        }
+
+        function cambiarModo(modo) {
+            const botones = document.querySelectorAll('.modo-btn');
+            const teclado = document.querySelector('.teclado');
+            const funcionesAvanzadas = document.querySelector('.funciones-avanzadas');
+            const conversionUnidades = document.querySelector('.conversion-unidades');
+            const funcionesFinancieras = document.querySelector('.funciones-financieras');
+
+            // Ocultar todos los paneles
+            [teclado, funcionesAvanzadas, conversionUnidades, funcionesFinancieras].forEach(panel => {
+                panel.classList.remove('visible');
+            });
+
+            // Actualizar botones
+            botones.forEach(btn => {
+                btn.classList.remove('activo');
+                btn.setAttribute('aria-pressed', 'false');
+            });
+
+            // Mostrar el panel correspondiente
+            switch(modo) {
+                case 'normal':
+                    teclado.classList.add('visible');
+                    botones[0].classList.add('activo');
+                    botones[0].setAttribute('aria-pressed', 'true');
+                    break;
+                case 'avanzado':
+                    funcionesAvanzadas.classList.add('visible');
+                    botones[1].classList.add('activo');
+                    botones[1].setAttribute('aria-pressed', 'true');
+                    break;
+                case 'conversion':
+                    conversionUnidades.classList.add('visible');
+                    botones[2].classList.add('activo');
+                    botones[2].setAttribute('aria-pressed', 'true');
+                    break;
+                case 'financiero':
+                    funcionesFinancieras.classList.add('visible');
+                    botones[3].classList.add('activo');
+                    botones[3].setAttribute('aria-pressed', 'true');
+                    break;
+            }
+        }
+
+        function calcularFuncion(tipo) {
+            const numero = parseFloat(resultadoActual);
+            let resultado;
+
+            switch(tipo) {
+                // Operadores básicos
+                case 'sqrt':
+                    resultado = Math.sqrt(numero);
+                    operacionActual = `√(${numero})`;
+                    break;
+                case 'pow2':
+                    resultado = Math.pow(numero, 2);
+                    operacionActual = `${numero}²`;
+                    break;
+                case 'pow3':
+                    resultado = Math.pow(numero, 3);
+                    operacionActual = `${numero}³`;
+                    break;
+                case 'reciproco':
+                    resultado = 1 / numero;
+                    operacionActual = `1/(${numero})`;
+                    break;
+
+                // Constantes
+                case 'pi':
+                    resultado = Math.PI;
+                    operacionActual = 'π';
+                    break;
+                case 'e':
+                    resultado = Math.E;
+                    operacionActual = 'e';
+                    break;
+                
+                // Funciones trigonométricas existentes
+                case 'sin':
+                    resultado = Math.sin(numero * Math.PI / 180);
+                    operacionActual = `sin(${numero}°)`;
+                    break;
+                case 'cos':
+                    resultado = Math.cos(numero * Math.PI / 180);
+                    operacionActual = `cos(${numero}°)`;
+                    break;
+                case 'tan':
+                    resultado = Math.tan(numero * Math.PI / 180);
+                    operacionActual = `tan(${numero}°)`;
+                    break;
+                case 'log':
+                    resultado = Math.log10(numero);
+                    operacionActual = `log(${numero})`;
+                    break;
+                
+                // Funciones hiperbólicas
+                case 'sinh':
+                    resultado = Math.sinh(numero);
+                    operacionActual = `sinh(${numero})`;
+                    break;
+                case 'cosh':
+                    resultado = Math.cosh(numero);
+                    operacionActual = `cosh(${numero})`;
+                    break;
+                case 'tanh':
+                    resultado = Math.tanh(numero);
+                    operacionActual = `tanh(${numero})`;
+                    break;
+                case 'ln':
+                    resultado = Math.log(numero);
+                    operacionActual = `ln(${numero})`;
+                    break;
+                
+                // Otras funciones
+                case 'rand':
+                    resultado = Math.random();
+                    operacionActual = 'random(0,1)';
+                    break;
+                case 'fact':
+                    resultado = factorial(numero);
+                    operacionActual = `${numero}!`;
+                    break;
+            }
+
+            resultadoActual = formatearResultado(resultado);
+            resetearPantalla = true;
+            actualizarPantalla();
+        }
+
+        function factorial(n) {
+            if (n < 0) return NaN;
+            if (n === 0) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+            return result;
+        }
+
+        function convertirUnidad(tipo) {
+            const numero = parseFloat(resultadoActual);
+            let resultado;
+            let unidadOriginal = '';
+            let unidadFinal = '';
+            
+            switch(tipo) {
+                case 'km-mi':
+                    resultado = numero * 0.621371;
+                    unidadOriginal = 'km';
+                    unidadFinal = 'mi';
+                    break;
+                case 'mi-km':
+                    resultado = numero * 1.60934;
+                    unidadOriginal = 'mi';
+                    unidadFinal = 'km';
+                    break;
+                case 'kg-lb':
+                    resultado = numero * 2.20462;
+                    unidadOriginal = 'kg';
+                    unidadFinal = 'lb';
+                    break;
+                case 'lb-kg':
+                    resultado = numero * 0.453592;
+                    unidadOriginal = 'lb';
+                    unidadFinal = 'kg';
+                    break;
+                case 'c-f':
+                    resultado = (numero * 9/5) + 32;
+                    unidadOriginal = '°C';
+                    unidadFinal = '°F';
+                    break;
+                case 'f-c':
+                    resultado = (numero - 32) * 5/9;
+                    unidadOriginal = '°F';
+                    unidadFinal = '°C';
+                    break;
+                case 'm-ft':
+                    resultado = numero * 3.28084;
+                    unidadOriginal = 'm';
+                    unidadFinal = 'ft';
+                    break;
+                case 'ft-m':
+                    resultado = numero * 0.3048;
+                    unidadOriginal = 'ft';
+                    unidadFinal = 'm';
+                    break;
+            }
+
+            operacionActual = `${numero}${unidadOriginal} = `;
+            resultadoActual = `${formatearResultado(resultado)}${unidadFinal}`;
+            resetearPantalla = true;
+            actualizarPantalla();
+        }
+
+        function convertirBase(base) {
+            const numero = parseInt(resultadoActual);
+            let resultado;
+            
+            switch(base) {
+                case 'bin':
+                    resultado = numero.toString(2);
+                    operacionActual = `${numero}₁₀ → ${resultado}₂`;
+                    break;
+                case 'oct':
+                    resultado = numero.toString(8);
+                    operacionActual = `${numero}₁₀ → ${resultado}₈`;
+                    break;
+                case 'hex':
+                    resultado = numero.toString(16).toUpperCase();
+                    operacionActual = `${numero}₁₀ → ${resultado}₁₆`;
+                    break;
+                case 'dec':
+                    // Detectar la base actual
+                    let baseActual = 10;
+                    if (resultadoActual.startsWith('0b')) baseActual = 2;
+                    else if (resultadoActual.startsWith('0o')) baseActual = 8;
+                    else if (resultadoActual.startsWith('0x')) baseActual = 16;
+                    
+                    resultado = parseInt(resultadoActual, baseActual).toString();
+                    operacionActual = `${resultadoActual} → ${resultado}₁₀`;
+                    break;
+            }
+
+            resultadoActual = resultado;
+            resetearPantalla = true;
+            actualizarPantalla();
+        }
+        
+        // Soporte para teclado mejorado
+        document.addEventListener('keydown', function(event) {
+            if (event.key >= '0' && event.key <= '9') {
+                agregarNumero(event.key);
+            } else if (event.key === '.') {
+                agregarDecimal();
+            } else if (['+', '-', '*', '/'].includes(event.key)) {
+                agregarOperador(event.key);
+            } else if (event.key === '%') {
+                agregarOperador('%');
+            } else if (event.key === 'Enter' || event.key === '=') {
+                event.preventDefault(); // Prevenir comportamiento por defecto del Enter
+                calcular();
+            } else if (event.key === 'Escape') {
+                limpiar();
+            } else if (event.key === 'Backspace') {
+                borrar();
+            }
+        });
+
+        function calcularFinanciero(tipo) {
+            let resultado;
+            let valores = {};
+
+            switch(tipo) {
+                case 'interes-simple':
+                    valores = obtenerValoresFinancieros(['principal', 'tasa', 'tiempo']);
+                    if (valores) {
+                        resultado = valores.principal * (1 + valores.tasa * valores.tiempo);
+                        operacionActual = `${valores.principal} * (1 + ${valores.tasa} * ${valores.tiempo})`;
+                    }
+                    break;
+
+                case 'interes-compuesto':
+                    valores = obtenerValoresFinancieros(['principal', 'tasa', 'tiempo', 'frecuencia']);
+                    if (valores) {
+                        resultado = valores.principal * Math.pow(1 + valores.tasa/valores.frecuencia, 
+                            valores.frecuencia * valores.tiempo);
+                        operacionActual = `${valores.principal} * (1 + ${valores.tasa}/${valores.frecuencia})^${valores.frecuencia * valores.tiempo}`;
+                    }
+                    break;
+
+                case 'van':
+                    let flujos = prompt("Ingrese los flujos de caja separados por comas (ej: -1000,200,300,400):");
+                    let tasa = prompt("Ingrese la tasa de descuento (ej: 0.1 para 10%):");
+                    if (flujos && tasa) {
+                        valores.flujos = flujos.split(',').map(Number);
+                        valores.tasa = parseFloat(tasa);
+                        resultado = calcularVAN(valores.flujos, valores.tasa);
+                        operacionActual = `VAN(${valores.tasa}, [${valores.flujos.join(', ')}])`;
+                    }
+                    break;
+
+                case 'tir':
+                    flujos = prompt("Ingrese los flujos de caja separados por comas (ej: -1000,200,300,400):");
+                    if (flujos) {
+                        valores.flujos = flujos.split(',').map(Number);
+                        resultado = calcularTIR(valores.flujos);
+                        operacionActual = `TIR([${valores.flujos.join(', ')}])`;
+                    }
+                    break;
+
+                case 'cuota-prestamo':
+                    valores = obtenerValoresFinancieros(['principal', 'tasa', 'plazo']);
+                    if (valores) {
+                        resultado = calcularCuotaPrestamo(valores.principal, valores.tasa, valores.plazo);
+                        operacionActual = `PMT(${valores.principal}, ${valores.tasa}, ${valores.plazo})`;
+                    }
+                    break;
+
+                // ... otros casos financieros
+            }
+
+            if (resultado !== undefined) {
+                resultadoActual = formatearResultado(resultado);
+                resetearPantalla = true;
+                actualizarPantalla();
+            }
+        }
+
+        function obtenerValoresFinancieros(campos) {
+            let valores = {};
+            for (let campo of campos) {
+                let valor = prompt(`Ingrese ${campo}:`);
+                if (valor === null) return null;
+                valores[campo] = parseFloat(valor);
+                if (isNaN(valores[campo])) return null;
+            }
+            return valores;
+        }
+
+        function calcularVAN(flujos, tasa) {
+            return flujos.reduce((van, flujo, t) => 
+                van + flujo / Math.pow(1 + tasa, t), 0
+            );
+        }
+
+        function calcularTIR(flujos, estimacion = 0.1) {
+            const MAX_ITER = 100;
+            const PRECISION = 0.0000001;
+            
+            function f(tasa) {
+                return flujos.reduce((sum, flujo, t) => 
+                    sum + flujo / Math.pow(1 + tasa, t), 0
+                );
+            }
+            
+            let tasa = estimacion;
+            for(let i = 0; i < MAX_ITER; i++) {
+                let van = f(tasa);
+                if(Math.abs(van) < PRECISION) break;
+                
+                let h = Math.max(Math.abs(tasa * 0.00001), 0.00001);
+                let derivada = (f(tasa + h) - van) / h;
+                tasa = tasa - van / derivada;
+            }
+            
+            return tasa;
+        }
+
+        function calcularCuotaPrestamo(principal, tasaAnual, plazoMeses) {
+            const tasaMensual = tasaAnual / 12;
+            return principal * tasaMensual * Math.pow(1 + tasaMensual, plazoMeses) / 
+                   (Math.pow(1 + tasaMensual, plazoMeses) - 1);
+        }
+    </script>
+</body>
+</html>
